@@ -1,64 +1,69 @@
-body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #fce4ec; /* Rosa suave */
-    font-family: 'Arial', sans-serif;
-    touch-action: manipulation; /* Mejora el toque en celular */
+const canvas = document.getElementById('canvasArbol');
+const ctx = canvas.getContext('2d');
+const musica = document.getElementById('musica');
+const figura = document.getElementById('figura');
+
+// Ajustar el canvas al tamaño real del celular o PC
+function ajustarPantalla() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - 40;
+}
+window.addEventListener('resize', ajustarPantalla);
+ajustarPantalla();
+
+function iniciarCaida() {
+    // 1. Reproducir música
+    musica.play().catch(e => console.log("Error música:", e));
+
+    // 2. Mover el corazón hacia abajo
+    figura.style.top = (window.innerHeight - 80) + 'px';
+    document.getElementById('instruccion').style.display = 'none';
+
+    // 3. Iniciar lluvia y árbol tras un pequeño delay
+    setTimeout(() => {
+        iniciarLluvia();
+        dibujarArbol(canvas.width / 2, canvas.height, -90, 10, 10);
+    }, 1000);
 }
 
-#figura {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 80px; 
-    cursor: pointer;
-    z-index: 100;
-    user-select: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.5s ease;
+function iniciarLluvia() {
+    setInterval(() => {
+        const c = document.createElement('div');
+        c.innerHTML = '❤️';
+        c.className = 'corazon-lluvia';
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.fontSize = Math.random() * 20 + 10 + 'px';
+        c.style.animation = `caida ${Math.random() * 2 + 3}s linear forwards`;
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 5000);
+    }, 300);
 }
 
-#letra-l {
-    position: absolute;
-    font-size: 35px;
-    color: white;
-    font-weight: bold;
+// Función simple para dibujar el árbol
+function dibujarArbol(x, y, angulo, lineas, grosor) {
+    if (lineas === 0) return;
+
+    const x2 = x + Math.cos(angulo * Math.PI / 180) * lineas * (window.innerWidth < 600 ? 7 : 12);
+    const y2 = y + Math.sin(angulo * Math.PI / 180) * lineas * (window.innerWidth < 600 ? 7 : 12);
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = lineas < 3 ? '#ff80ab' : '#5d4037';
+    ctx.lineWidth = grosor;
+    ctx.stroke();
+
+    setTimeout(() => {
+        dibujarArbol(x2, y2, angulo - 20, lineas - 1, grosor * 0.8);
+        dibujarArbol(x2, y2, angulo + 20, lineas - 1, grosor * 0.8);
+    }, 100);
 }
 
-#instruccion {
-    position: absolute;
-    top: 10%;
-    width: 100%;
-    text-align: center;
-    color: #ad1457;
-    font-weight: bold;
-    font-size: 1.2rem;
-    padding: 0 10px;
-}
-
-#suelo {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 40px;
-    background-color: #8d6e63;
-    z-index: 5;
-}
-
-#canvasArbol {
-    position: absolute;
-    bottom: 40px;
-    left: 0;
-    display: block;
-}
-
-.corazon-lluvia {
-    position: absolute;
-    color: #e91e63;
-    pointer-events: none;
-    z-index: 1;
-}
+// Agregar estilo de animación para la lluvia
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes caida {
+    0% { transform: translateY(-10vh); }
+    100% { transform: translateY(110vh); }
+}`;
+document.head.appendChild(style);
